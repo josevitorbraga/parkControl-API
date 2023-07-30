@@ -1,0 +1,19 @@
+{
+  "name": "parkControl-API",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/josevitorbraga/parkControl-API.git",
+  "author": "Jose Braga <josevitor2712@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "scripts": {
+    "start": "yarn nodemon index.js"
+  }
+}
