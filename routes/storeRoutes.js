@@ -16,13 +16,15 @@ storeRouter.post('/new', async (req, res) => {
   try {
     const { store_name, cnpj, valor_hora } = req.body;
 
-    const createdStore = await Store.create({
+    await Store.create({
       store_name,
       cnpj,
       valor_hora,
     });
 
-    res.status(200).json(createdStore);
+    res
+      .status(200)
+      .json({ type: 'success', message: 'Loja adicionada com sucesso' });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

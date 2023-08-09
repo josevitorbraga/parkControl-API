@@ -14,10 +14,7 @@ const RegisterSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    client_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
+
     pagamento: {
       type: String,
       required: true,
@@ -32,6 +29,10 @@ const RegisterSchema = mongoose.Schema(
     },
     desconto_description: {
       type: String,
+      required: true,
+    },
+    client_data: {
+      type: Object,
       required: true,
     },
   },
