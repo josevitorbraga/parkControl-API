@@ -1,8 +1,9 @@
-import { Router } from 'express';
+import e, { Router } from 'express';
 import { User } from '../schemas/UserSchema.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import authVerification from '../middlewares/authVerification.js';
+import { Store } from '../schemas/StoreSchema.js';
 
 const userRouter = Router();
 
@@ -15,14 +16,36 @@ userRouter.get('/', async (req, res) => {
   }
 });
 
+userRouter.post('/update', authVerification, async (req, res) => {
+  try {
+    const { user_id, user_data } = req.body;
+    const hashedPassword = await bcrypt.hash(user_data.password, 12);
+    await User.findOneAndUpdate(
+      { _id: user_id },
+      {
+        name: user_data.name,
+        user: user_data.user,
+        password: hashedPassword,
+        isAdmin: user_data.isAdmin,
+      }
+    );
+
+    res
+      .status(200)
+      .json({ type: 'success', message: 'Usuário atualizado com sucesso' });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
 userRouter.post('/new', authVerification, async (req, res) => {
   try {
-    const { name, user, password, isAdmin = false } = req.body;
+    const { name, user, password, isAdmin = false, stores } = req.body;
     const hashedPassword = await bcrypt.hash(password, 12);
     const createdUser = await User.create({
       name,
       user,
       password: hashedPassword,
+      stores,
       isAdmin,
     });
 
@@ -36,7 +59,7 @@ userRouter.post('/new', authVerification, async (req, res) => {
 
 userRouter.post('/login', async (req, res) => {
   try {
-    const { user, password } = req.body;
+    const { user, password, store_id } = req.body;
 
     const existingUser = await User.findOne({ user });
 
@@ -62,11 +85,35 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_KEY, {
-      expiresIn: '1d',
-    });
+    if (!existingUser.stores.includes(store_id)) {
+      return res.status(400).json({
+        type: 'error',
+        message: 'Usuário não cadastrado nessa loja',
+      });
+    }
 
-    return res.status(200).json({ user: userWithoutPassword, token });
+    const storeData = await Store.find({ _id: store_id });
+
+    const token = jwt.sign(
+      {
+        id: existingUser._id,
+        store_id: store_id,
+        store_name: storeData[0].store_name,
+      },
+      process.env.JWT_KEY,
+      {
+        expiresIn: '1d',
+      }
+    );
+
+    return res.status(200).json({
+      user: {
+        ...userWithoutPassword,
+        store_id: store_id,
+        store_name: storeData[0].store_name,
+      },
+      token,
+    });
   } catch (e) {
     return res.status(400).json({ type: 'error', message: e.message });
   }
@@ -75,7 +122,11 @@ userRouter.post('/login', async (req, res) => {
 userRouter.get('/auth', authVerification, async (req, res) => {
   const userData = await User.findById(req.user.id).select('-password');
 
-  res.status(200).json(userData);
+  res.status(200).json({
+    ...userData._doc,
+    store_logged: req.user.store_id,
+    store_name: req.user.store_name,
+  });
 });
 
 export default userRouter;

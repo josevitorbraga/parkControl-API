@@ -38,6 +38,15 @@ const PatioSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    desconto: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    desconto_description: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );

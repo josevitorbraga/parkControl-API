@@ -9,7 +9,15 @@ const StoreSchema = new mongoose.Schema(
     cnpj: {
       type: String,
     },
-    valor_hora: {
+    minutagem_min: {
+      type: Number,
+      required: true,
+    },
+    valor: {
+      type: Number,
+      required: true,
+    },
+    valor_exced: {
       type: Number,
       required: true,
     },
