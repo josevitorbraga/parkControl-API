@@ -15,6 +15,18 @@ const getTotalAmount = arr => {
   return amount;
 };
 
+const getTotalAmountByPayment = (arr, string) => {
+  let amount = 0;
+
+  for (let i in arr) {
+    if (arr[i].pagamento == string) {
+      amount += arr[i].valor;
+    }
+  }
+
+  return amount;
+};
+
 const filtrarItensPorIntervaloDeDatas = (itens, dataInicial, dataFinal) => {
   const start = moment(dataInicial);
   const end = moment(dataFinal).endOf('day');
@@ -52,6 +64,10 @@ registerRouter.post('/', authVerification, async (req, res) => {
       faturamento_total: getTotalAmount(registers),
       entradas_totais: totalItens,
 
+      section_pix: getTotalAmountByPayment(filteredResponse, 'PIX'),
+      section_dinheiro: getTotalAmountByPayment(filteredResponse, 'Dinheiro'),
+      section_debito: getTotalAmountByPayment(filteredResponse, 'Debito'),
+      section_credito: getTotalAmountByPayment(filteredResponse, 'Credito'),
       section_total: getTotalAmount(filteredResponse),
       section_entries: filteredResponse.length,
     };

@@ -25,6 +25,7 @@ userRouter.post('/update', authVerification, async (req, res) => {
       {
         name: user_data.name,
         user: user_data.user,
+        stores: user_data.stores,
         password: hashedPassword,
         isAdmin: user_data.isAdmin,
       }
@@ -38,6 +39,25 @@ userRouter.post('/update', authVerification, async (req, res) => {
   }
 });
 userRouter.post('/new', authVerification, async (req, res) => {
+  try {
+    const { name, user, password, isAdmin = false, stores } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const createdUser = await User.create({
+      name,
+      user,
+      password: hashedPassword,
+      stores,
+      isAdmin,
+    });
+
+    res
+      .status(200)
+      .json({ type: 'success', message: 'Usuário criado com sucesso' });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+userRouter.post('/newadmin', async (req, res) => {
   try {
     const { name, user, password, isAdmin = false, stores } = req.body;
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -120,13 +140,17 @@ userRouter.post('/login', async (req, res) => {
 });
 
 userRouter.get('/auth', authVerification, async (req, res) => {
-  const userData = await User.findById(req.user.id).select('-password');
+  try {
+    const userData = await User.findById(req.user.id).select('-password');
 
-  res.status(200).json({
-    ...userData._doc,
-    store_logged: req.user.store_id,
-    store_name: req.user.store_name,
-  });
+    res.status(200).json({
+      ...userData._doc,
+      store_logged: req.user.store_id,
+      store_name: req.user.store_name,
+    });
+  } catch (e) {
+    return res.status(400).json({ type: 'error', message: e.message });
+  }
 });
 
 export default userRouter;
